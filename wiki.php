@@ -78,8 +78,8 @@ class Wiki
         $finfo = finfo_open(FILEINFO_MIME);
         $mime_type = finfo_file($finfo, $path);
 
-        if (substr($mime_type, 0, 4) != 'text') {
-            // not an ASCII file, send it directly to the browser
+        if (strpos($mime_type, 'inode/x-empty') === false && substr($mime_type, 0, 4) != 'text') {
+            // not an ASCII file, send it directly to the browser (except if it's empty)
             $file = fopen($path, 'rb');
 
             header("Content-Type: $mime_type");
