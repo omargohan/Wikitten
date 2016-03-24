@@ -46,7 +46,7 @@ class Wiki
             throw new Exception("Page '$page' was not found");
         };
 
-        if(!$this->_pathIsSafe($fullPath)) {
+        if(!ENABLE_CREATING && !$this->_pathIsSafe($fullPath)) {
             $not_found();
         }            
 
