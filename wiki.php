@@ -447,7 +447,10 @@ class Wiki
 
 
         // Create subdirectory recursively, if neccessary
-        mkdir(dirname($filepath), 0755, true);
+        $dir = dirname($filepath);
+
+        if(!file_exists($dir))
+          mkdir($dir, 0755, true);
         
         // Save default content, and redirect back to the new page
         file_put_contents($filepath, $content);
