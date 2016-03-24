@@ -47,6 +47,7 @@ if(!defined('ENABLE_CREATING')) {
 }
 
 define('PLUGINS', __DIR__ . DIRECTORY_SEPARATOR . 'plugins');
+define('APP_DIR', '');
 
 $request_uri = parse_url($_SERVER['REQUEST_URI']);
 $request_uri = explode("/", $request_uri['path']);
