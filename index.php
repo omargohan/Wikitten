@@ -46,7 +46,7 @@ if(!defined('ENABLE_CREATING')) {
     define('ENABLE_CREATING', false);
 
 if(!defined('ENABLE_DELETION')) {
-    define('ENABLE_DELETION', true);
+    define('ENABLE_DELETION', false);
 }
 
 define('PLUGINS', __DIR__ . DIRECTORY_SEPARATOR . 'plugins');
