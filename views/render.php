@@ -41,6 +41,19 @@
     <?php endif; ?>
     <?php if ($deletion_enabled): ?>
     <div id="deletion-notification" class="alert" style="display:none;"></div>
+    <div id="delete-confirmation" class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-body">
+            <p>This page will be deleted permanently. Are you sure?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="deleteConfirmed">Delete page</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
     <?php endif; ?>
     <div id="render">
         <?php echo $html; ?>
@@ -138,8 +151,15 @@
 
         <?php if ($deletion_enabled): ?>
         $('#delete').click(function (event) {
-            event.preventDefault();
-            
+          $('#delete-confirmation').modal('show');
+        });
+
+        $('#deleteConfirmed').click(function (event) {
+          deletePage();
+          $('#delete-confirmation').modal('hide');
+        });
+
+        function deletePage() {
             var notification = $('#deletion-notification');
             notification.removeClass('alert-info alert-error').html('').hide();
 
@@ -158,7 +178,7 @@
                     notification.addClass('alert-error').html('Could not delete page.').show();
                 }
             });
-        });
+        };
         <?php endif ?>
 
         <?php if ($use_pastebin): ?>
