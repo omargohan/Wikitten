@@ -3,6 +3,9 @@
         <?php if ($html && isset($source)): ?>
             <a href="javascript:;" class="btn-black" id="toggle">Toggle source</a>
         <?php endif ?>
+        <?php if ($deletion_enabled): ?>
+            <a href="javascript:;" class="btn-black" id="delete">Delete page</a>
+        <?php endif ?>
         <?php if ($use_pastebin): ?>
             <a href="javascript:;" class="btn-black" id="create-pastebin" title="Create public Paste on PasteBin">Create public Paste</a>
         <?php endif; ?>
@@ -35,6 +38,9 @@
 <?php if ($html): ?>
     <?php if ($use_pastebin): ?>
     <div id="pastebin-notification" class="alert" style="display:none;"></div>
+    <?php endif; ?>
+    <?php if ($deletion_enabled): ?>
+    <div id="deletion-notification" class="alert" style="display:none;"></div>
     <?php endif; ?>
     <div id="render">
         <?php echo $html; ?>
@@ -129,6 +135,31 @@
             }
 
         });
+
+        <?php if ($deletion_enabled): ?>
+        $('#delete').click(function (event) {
+            event.preventDefault();
+            
+            var notification = $('#deletion-notification');
+            notification.removeClass('alert-info alert-error').html('').hide();
+
+            $.ajax({
+                type: 'POST',
+                url: '<?php echo BASE_URL . '/?a=delete'; ?>',
+                data: { ref: '<?php echo base64_encode($page['file']); ?>' },
+                context: $(this)
+            }).done(function(response) {                
+                $(this).removeClass('disabled');
+
+                if (response.status === 'ok') {
+                    notification.addClass('alert-info').html('Page deleted. ').show();
+                    window.location = response.url;
+                } else {
+                    notification.addClass('alert-error').html('Could not delete page.').show();
+                }
+            });
+        });
+        <?php endif ?>
 
         <?php if ($use_pastebin): ?>
         $('#create-pastebin').on('click', function (event) {

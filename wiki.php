@@ -158,7 +158,8 @@ class Wiki
             'parts' => $parts,
             'page' => $page_data,
             'is_dir' => false,
-            'use_pastebin' => $this->_usePasteBin()
+            'use_pastebin' => $this->_usePasteBin(),
+            'deletion_enabled' => ENABLE_DELETION
         ));
     }
 
@@ -466,6 +467,32 @@ class Wiki
         } 
         else
             $this->_404();
+    }
+
+    public function deleteAction()
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            if (isset($_POST['ref'])) {
+                $file = base64_decode($_POST['ref']);
+                $path = realpath(LIBRARY . DIRECTORY_SEPARATOR . $file);
+
+                if (!ENABLE_DELETION || !$this->_pathIsSafe($path)) {
+                    $this->_404();
+                } else {
+                    if (unlink($path)) {
+                        $response['status'] = 'ok';
+                        $response['url'] = BASE_URL . "/" . dirname($file);
+                    } else {
+                        $response['status'] = 'fail';
+                        $response['error'] = '';
+                    }
+
+                    header('Content-Type: application/json');
+                    echo json_encode($response);
+                    exit();
+                }
+            }
+        }
     }
 
     /**
