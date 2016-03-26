@@ -322,11 +322,17 @@ class Wiki
         if (isset($_REQUEST['a'])) {
             $action = $_REQUEST['a'];
 
+            if($action !== 'authenticate' && (!isset($_SESSION['isAuthenticated']) || !$_SESSION['isAuthenticated']))
+              return 'auth';
+
             if (in_array("{$action}Action", get_class_methods(get_class($this)))) {
                 $this->_action = $action;
             }
         } else {
-            $this->_action = 'index';
+            if(!isset($_SESSION['isAuthenticated']) || !$_SESSION['isAuthenticated'])
+              return 'auth';
+            else
+              $this->_action = 'index';
         }
         return $this->_action;
     }
@@ -493,6 +499,41 @@ class Wiki
                 }
             }
         }
+    }
+
+    public function authAction() {
+      $passwordPath = __DIR__ . DIRECTORY_SEPARATOR . 'conf' . DIRECTORY_SEPARATOR . 'passwd';
+      $isPasswordSet = is_readable($passwordPath) && !empty(file_get_contents($passwordPath));
+
+      return $this->_view('auth', array(
+        'hide_file_tree' => true,
+        'password_set' => $isPasswordSet
+      ));
+    }
+
+    public function authenticateAction() {
+      $passwordPath = __DIR__ . DIRECTORY_SEPARATOR . 'conf' . DIRECTORY_SEPARATOR . 'passwd';
+      $password = $_POST['password'];
+      $isPasswordSet = is_readable($passwordPath) && !empty(file_get_contents($passwordPath));
+
+      if(!$isPasswordSet) {
+        if(!empty($password)) {
+          file_put_contents($passwordPath, sha1($password));
+          return $this->indexAction();
+        }
+      }
+      else {
+        $correctPassword = file_get_contents($passwordPath);
+
+        if(sha1($password) === $correctPassword) {
+          $_SESSION['isAuthenticated'] = true;
+          return $this->indexAction();
+        }
+        else {
+          $_SESSION['isAuthenticated'] = false;
+          return $this->authAction();
+        }
+      }
     }
 
     /**

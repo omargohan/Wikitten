@@ -59,12 +59,14 @@ function e($dirty) {
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-xs-12 col-md-3">
+                        <?php if(!$hide_file_tree): ?>
                         <div id="sidebar">
                             <div class="inner">
                                 <h2><span><?php echo e(APP_NAME) ?></span></h2>
                                 <?php include('tree.php') ?>
                             </div>
                         </div>
+                        <?php endif ?>
                     </div>
                     <div class="col-xs-12 col-md-9">
                         <div id="content">
