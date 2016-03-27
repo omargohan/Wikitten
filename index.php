@@ -68,14 +68,9 @@ foreach ($request_uri as $key => $value) {
 
 define('APP_DIR', rtrim(implode('/', $app_dir), "/"));
 
-$https = false;
-if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on") {
-    $https = true;
-}
+define('BASE_URL', "//" . $_SERVER['HTTP_HOST'] . APP_DIR);
 
-define('BASE_URL', "http" . ($https ? "s" : "") . "://" . $_SERVER['HTTP_HOST'] . APP_DIR);
-
-unset($config_file, $request_uri, $script_name, $app_dir, $https);
+unset($config_file, $request_uri, $script_name, $app_dir);
 
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'wiki.php';
