@@ -1,5 +1,7 @@
 <?php
 
+require_once('password_authentication.php');
+
 class Wiki
 {
     protected $_renderers = array(
@@ -322,14 +324,14 @@ class Wiki
         if (isset($_REQUEST['a'])) {
             $action = $_REQUEST['a'];
 
-            if($action !== 'authenticate' && (!isset($_SESSION['isAuthenticated']) || !$_SESSION['isAuthenticated']))
+            if(PasswordAuthentication::isAuthenticationRequired() && $action !== 'authenticate')
               return 'auth';
 
             if (in_array("{$action}Action", get_class_methods(get_class($this)))) {
                 $this->_action = $action;
             }
         } else {
-            if(!isset($_SESSION['isAuthenticated']) || !$_SESSION['isAuthenticated'])
+            if(PasswordAuthentication::isAuthenticationRequired())
               return 'auth';
             else
               $this->_action = 'index';
@@ -502,38 +504,22 @@ class Wiki
     }
 
     public function authAction() {
-      $passwordPath = __DIR__ . DIRECTORY_SEPARATOR . 'conf' . DIRECTORY_SEPARATOR . 'passwd';
-      $isPasswordSet = is_readable($passwordPath) && !empty(file_get_contents($passwordPath));
-
       return $this->_view('auth', array(
         'hide_file_tree' => true,
-        'password_set' => $isPasswordSet
+        'password_set' => PasswordAuthentication::hasPasswordBeenSet()
       ));
     }
 
     public function authenticateAction() {
-      $passwordPath = __DIR__ . DIRECTORY_SEPARATOR . 'conf' . DIRECTORY_SEPARATOR . 'passwd';
       $password = $_POST['password'];
-      $isPasswordSet = is_readable($passwordPath) && !empty(file_get_contents($passwordPath));
 
-      if(!$isPasswordSet) {
-        if(!empty($password)) {
-          file_put_contents($passwordPath, sha1($password));
-          return $this->indexAction();
-        }
+      if(PasswordAuthentication::authenticate($password)) {
+        // Redirect to the root page so that we avoid the authenticate's POST request being reloaded
+        header('Location: ' . BASE_URL);
+        exit();
       }
-      else {
-        $correctPassword = file_get_contents($passwordPath);
-
-        if(sha1($password) === $correctPassword) {
-          $_SESSION['isAuthenticated'] = true;
-          return $this->indexAction();
-        }
-        else {
-          $_SESSION['isAuthenticated'] = false;
-          return $this->authAction();
-        }
-      }
+      else
+        return $this->authAction();
     }
 
     /**

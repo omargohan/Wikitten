@@ -52,6 +52,10 @@ if(!defined('ENABLE_DELETION')) {
     define('ENABLE_DELETION', false);
 }
 
+if(!defined('ENABLE_PASSWORD_AUTHENTICATION')) {
+    define('ENABLE_PASSWORD_AUTHENTICATION', false);
+}
+
 define('PLUGINS', __DIR__ . DIRECTORY_SEPARATOR . 'plugins');
 define('APP_DIR', '');
 

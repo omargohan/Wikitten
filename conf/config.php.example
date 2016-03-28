@@ -22,6 +22,9 @@ define('DEFAULT_FILE', 'index.md');
 // Enable to delete files
 // define('ENABLE_DELETION', true);
 
+// Enable password authentication
+// define('ENABLE_PASSWORD_AUTHENTICATION', true);
+
 // Enable JSON page data?
 // define('USE_PAGE_METADATA', true);
 
