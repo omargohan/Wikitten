@@ -26,6 +26,10 @@ unset($config_file, $request_uri, $script_name, $app_dir);
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'wiki.php';
 
 Flight::before('start', function() {
+  if (!function_exists("finfo_open")) {
+      die("<p>Please enable the PHP Extension <code style='background-color: #eee; border: 1px solid #ccc; padding: 3px; border-radius: 3px; line-height: 1;'>FileInfo.dll</code> by uncommenting or adding the following line:</p><pre style='background-color: #eee; border: 1px solid #ccc; padding: 5px; border-radius: 3px;'><code><span style='color: #999;'>;</span>extension=php_fileinfo.dll <span style='color: #999; margin-left: 25px;'># You can just uncomment by removing the semicolon (;) in the front.</span></code></pre>");
+  }
+
   if(isset($_REQUEST['a']) && $_REQUEST['a'] === 'authenticate') {
     Wiki::instance()->authenticateAction();
     exit();
@@ -37,7 +41,15 @@ Flight::before('start', function() {
   }
 });
 
+Flight::route('POST /edit/*', function() {
+  Wiki::instance()->editAction();
+});
 Flight::route('*', function() {
+  if (!isset($_REQUEST['a'])) {
+    Wiki::instance()->indexAction();
+    exit();
+  }
+
   Wiki::instance()->dispatch();
 });
 

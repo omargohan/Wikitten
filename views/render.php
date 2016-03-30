@@ -80,7 +80,7 @@
             </div>
         <?php endif ?>
 
-        <form method="POST" action="<?php echo BASE_URL . "/?a=edit" ?>">
+        <form method="POST" action="<?php echo BASE_URL . "/edit" ?>">
             <input type="hidden" name="ref" value="<?php echo base64_encode($page['file']) ?>">
             <textarea id="editor" name="source" class="form-control" rows="<?php echo substr_count($source, "\n") + 1; ?>"><?php echo $source; ?></textarea>
 
