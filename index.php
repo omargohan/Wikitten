@@ -3,6 +3,7 @@
 session_start();
 
 require_once 'configuration.php';
+require_once 'flight/Flight.php';
 
 $request_uri = parse_url($_SERVER['REQUEST_URI']);
 $request_uri = explode("/", $request_uri['path']);
@@ -24,5 +25,8 @@ unset($config_file, $request_uri, $script_name, $app_dir);
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'wiki.php';
 
-Wiki::instance()->dispatch();
+Flight::route('*', function() {
+  Wiki::instance()->dispatch();
+});
+Flight::start();
 
