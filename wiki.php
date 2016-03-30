@@ -70,8 +70,8 @@ class Wiki
                     'html'      =>
                           "<h3>Page '$_page' not found</h3>"
                         . "<br/>"
-                        . "<form method='GET'>"
-                        . "<input type='hidden' name='a' value='create'>"
+                        . "<form action='/create' method='POST'>"
+                        . "<input type='hidden' name='ref' value='" . $_SERVER['REQUEST_URI'] . "'>"
                         . "<input type='submit' class='btn btn-primary' value='Create this page' />"
                         . "</form>"
                     ,
@@ -434,14 +434,12 @@ class Wiki
     
     public function createAction()
     {
-        $request    = parse_url($_SERVER['REQUEST_URI']);
-        $page       = str_replace("###" . APP_DIR . "/", "", "###" . urldecode($request['path']));
-        
-        $filepath   = LIBRARY . urldecode($request['path']);
-        $content    = "# " . htmlspecialchars($page, ENT_QUOTES, 'UTF-8');
+        $page       = str_replace("###" . APP_DIR . "/", "", "###" . urldecode($_POST['ref']));
+        $filepath   = LIBRARY. DIRECTORY_SEPARATOR . $_POST['ref'];
 
         // if feature not enabled, go to 404
-        if (!ENABLE_CREATING || file_exists($filepath)) $this->_404();
+        if (!ENABLE_CREATING || file_exists($filepath))
+          $this->_404();
 
 
         // Create subdirectory recursively, if neccessary
@@ -451,6 +449,7 @@ class Wiki
           mkdir($dir, 0755, true);
         
         // Save default content, and redirect back to the new page
+        $content    = "# " . htmlspecialchars($page, ENT_QUOTES, 'UTF-8');
         file_put_contents($filepath, $content);
 
         if (file_exists($filepath))

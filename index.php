@@ -41,7 +41,10 @@ Flight::before('start', function() {
   }
 });
 
-Flight::route('POST /edit/*', function() {
+Flight::route('POST /create', function() {
+  Wiki::instance()->createAction();
+});
+Flight::route('POST /edit', function() {
   Wiki::instance()->editAction();
 });
 Flight::route('*', function() {
