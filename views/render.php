@@ -192,7 +192,7 @@
 
             $.ajax({
                 type: 'POST',
-                url: '<?php echo BASE_URL . '/?a=createPasteBin'; ?>',
+                url: '<?php echo BASE_URL . '/createPasteBin'; ?>',
                 data: { ref: '<?php echo base64_encode($page['file']); ?>' },
                 context: $(this)
             }).done(function(response) {                

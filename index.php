@@ -36,7 +36,7 @@ Flight::before('start', function() {
   }
 
   if(PasswordAuthentication::isAuthenticationRequired()) {
-    Wiki::instance()->authAction();
+    Wiki::instance()->authenticationFormAction();
     exit();
   }
 });
@@ -49,6 +49,9 @@ Flight::route('POST /edit', function() {
 });
 Flight::route('POST /delete', function() {
   Wiki::instance()->deleteAction();
+});
+Flight::route('POST /createPasteBin', function() {
+  Wiki::instance()->createPasteBinAction();
 });
 Flight::route('*', function() {
   if (!isset($_REQUEST['a'])) {

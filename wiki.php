@@ -489,7 +489,7 @@ class Wiki
       }
     }
 
-    public function authAction() {
+    public function authenticationFormAction() {
       return $this->_view('auth', array(
         'hide_file_tree' => true,
         'password_set' => PasswordAuthentication::hasPasswordBeenSet()
@@ -505,7 +505,7 @@ class Wiki
         exit();
       }
       else
-        return $this->authAction();
+        return $this->authenticationFormAction();
     }
 
     /**
