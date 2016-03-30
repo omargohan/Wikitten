@@ -324,17 +324,11 @@ class Wiki
         if (isset($_REQUEST['a'])) {
             $action = $_REQUEST['a'];
 
-            if(PasswordAuthentication::isAuthenticationRequired() && $action !== 'authenticate')
-              return 'auth';
-
             if (in_array("{$action}Action", get_class_methods(get_class($this)))) {
                 $this->_action = $action;
             }
         } else {
-            if(PasswordAuthentication::isAuthenticationRequired())
-              return 'auth';
-            else
-              $this->_action = 'index';
+            $this->_action = 'index';
         }
         return $this->_action;
     }

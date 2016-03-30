@@ -25,8 +25,22 @@ unset($config_file, $request_uri, $script_name, $app_dir);
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'wiki.php';
 
+Flight::before('start', function() {
+  if(isset($_REQUEST['a']) && $_REQUEST['a'] === 'authenticate') {
+    Wiki::instance()->authenticateAction();
+    exit();
+  }
+
+  if(PasswordAuthentication::isAuthenticationRequired()) {
+    Wiki::instance()->authAction();
+    exit();
+  }
+});
+
 Flight::route('*', function() {
   Wiki::instance()->dispatch();
 });
+
 Flight::start();
 
+?>
