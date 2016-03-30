@@ -54,12 +54,7 @@ Flight::route('POST /createPasteBin', function() {
   Wiki::instance()->createPasteBinAction();
 });
 Flight::route('*', function() {
-  if (!isset($_REQUEST['a'])) {
-    Wiki::instance()->indexAction();
-    exit();
-  }
-
-  Wiki::instance()->dispatch();
+  Wiki::instance()->indexAction();
 });
 
 Flight::start();

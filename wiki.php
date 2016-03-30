@@ -304,30 +304,6 @@ class Wiki
         return $return['directories'] + $return['files'];
     }
 
-    public function dispatch()
-    {
-        $action = $this->_getAction();
-        $actionMethod = "{$action}Action";
-
-        if ($action === null || !method_exists($this, $actionMethod)) {
-            $this->_404();
-        }
-
-        $this->$actionMethod();
-    }
-
-    protected function _getAction()
-    {
-        if (isset($_REQUEST['a'])) {
-            $action = $_REQUEST['a'];
-
-            if (in_array("{$action}Action", get_class_methods(get_class($this)))) {
-                $this->_action = $action;
-            }
-        }
-        return $this->_action;
-    }
-
     protected function _json($data = array())
     {
         header("Content-type: text/x-json");
