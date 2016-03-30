@@ -47,6 +47,9 @@ Flight::route('POST /create', function() {
 Flight::route('POST /edit', function() {
   Wiki::instance()->editAction();
 });
+Flight::route('POST /delete', function() {
+  Wiki::instance()->deleteAction();
+});
 Flight::route('*', function() {
   if (!isset($_REQUEST['a'])) {
     Wiki::instance()->indexAction();

@@ -467,28 +467,26 @@ class Wiki
 
     public function deleteAction()
     {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            if (isset($_POST['ref'])) {
-                $file = base64_decode($_POST['ref']);
-                $path = realpath(LIBRARY . DIRECTORY_SEPARATOR . $file);
+      if (isset($_POST['ref'])) {
+          $file = base64_decode($_POST['ref']);
+          $path = realpath(LIBRARY . DIRECTORY_SEPARATOR . $file);
 
-                if (!ENABLE_DELETION || !$this->_pathIsSafe($path)) {
-                    $this->_404();
-                } else {
-                    if (unlink($path)) {
-                        $response['status'] = 'ok';
-                        $response['url'] = BASE_URL . "/" . dirname($file);
-                    } else {
-                        $response['status'] = 'fail';
-                        $response['error'] = '';
-                    }
+          if (!ENABLE_DELETION || !$this->_pathIsSafe($path)) {
+              $this->_404();
+          } else {
+              if (unlink($path)) {
+                  $response['status'] = 'ok';
+                  $response['url'] = BASE_URL . "/" . dirname($file);
+              } else {
+                  $response['status'] = 'fail';
+                  $response['error'] = '';
+              }
 
-                    header('Content-Type: application/json');
-                    echo json_encode($response);
-                    exit();
-                }
-            }
-        }
+              header('Content-Type: application/json');
+              echo json_encode($response);
+              exit();
+          }
+      }
     }
 
     public function authAction() {
