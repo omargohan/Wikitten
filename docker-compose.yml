@@ -1,6 +1,6 @@
 wikitten:
   build: .
   ports:
-    - 9000:9000
+    - 8080:8080
   volumes:
     - .:/var/www

@@ -1,6 +1,10 @@
 <?php
-function tree($array, $parent, $parts = array(), $step = 0) {
+if (!defined('APP_STARTED')) {
+    die('Forbidden!');
+}
 
+function tree($array, $parent, $parts = array(), $step = 0)
+{
     if (!count($array)) {
         return '';
     }
@@ -13,7 +17,7 @@ function tree($array, $parent, $parts = array(), $step = 0) {
             $open = $step !== false && (isset($parts[$step]) && $key == $parts[$step]);
 
             $t .= '<li class="directory'. ($open ? ' open' : '') .'">';
-                $t .= '<a href="#" data-role="directory"><i class="glyphicon glyphicon-folder-'. ($open ? 'open' : 'close') .'"></i>&nbsp; ' . $key . '</a>';
+                $t .= '<a href="#" data-role="directory"><i class="far fa-folder'. ($open ? '-open' : '') .'"></i>&nbsp; ' . $key . '</a>';
                 $t .= tree($item, "$parent/$key", $parts, $open ? $step + 1 : false);
             $t .=  '</li>';
         } else {
@@ -29,11 +33,14 @@ function tree($array, $parent, $parts = array(), $step = 0) {
 ?>
 
 <div id="tree-filter" class="input-group">
-    <input type="text" id="tree-filter-query" placeholder="Search file &amp; directory names." class="form-control input-sm">
-    <a id="tree-filter-clear-query" title="Clear current search..." class="input-group-addon input-sm">
-        <i class="glyphicon glyphicon-remove"></i>
-    </a>
+  <input type="text" id="tree-filter-query" class="form-control" placeholder="Search file &amp; directory names." aria-label="Search" aria-describedby="search-addon">
+  <div class="input-group-append">
+    <button type="button" id="tree-filter-clear-query" class="btn  btn-outline-secondary" title="Clear current search..." disabled>
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
 </div>
+
 <ul class="unstyled" id="tree-filter-results"></ul>
 
 <?php echo tree($this->_getTree(), BASE_URL, isset($parts) ? $parts : array()); ?>
@@ -46,9 +53,18 @@ function tree($array, $parent, $parts = array(), $step = 0) {
         return jQuery(n).text().toUpperCase().indexOf(m[3].toUpperCase()) >= 0;
     };
 
+    //enable / disable buttons
+    jQuery.fn.extend({
+      disable: function(state) {
+        return this.each(function() {
+            this.disabled = state;
+        });
+      }
+    });
+
     $(document).ready(function() {
-        var iconFolderOpenClass  = 'glyphicon glyphicon-folder-open',
-            iconFolderCloseClass = 'glyphicon glyphicon-folder-close',
+        var iconFolderOpenClass  = 'far fa-folder-open',
+            iconFolderCloseClass = 'far fa-folder',
 
             // Handle live search/filtering:
             tree             = $('#tree'),
@@ -64,13 +80,16 @@ function tree($array, $parent, $parts = array(), $step = 0) {
         // in its place:
         function cancelFilterAction()
         {
+
             filterInput.val('').removeClass('active');
             resultsTree.empty();
             tree.show();
+            clearFilterInput.disable(true);
         }
 
         // Clear the filter input when the X to its right is clicked:
         clearFilterInput.click(cancelFilterAction);
+
 
         // Same thing if the user presses ESC and the filter is active:
         $(document).keyup(function(e) {
@@ -87,6 +106,8 @@ function tree($array, $parent, $parts = array(), $step = 0) {
 
             // Add a visual cue to show that the filter function is active:
             filterInput.toggleClass('active', isActive);
+
+            clearFilterInput.disable(false);
 
             // If we have no query, cleanup and bail out:
             if(!isActive) {
@@ -115,7 +136,7 @@ function tree($array, $parent, $parts = array(), $step = 0) {
         $(document).on('click', '#sidebar a[data-role="directory"]', function (event) {
             event.preventDefault();
 
-            var icon = $(this).children('.glyphicon');
+            var icon = $(this).children('.far');
             var open = icon.hasClass(iconFolderOpenClass);
             var subtree = $(this).siblings('ul')[0];
 

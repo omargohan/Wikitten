@@ -1,11 +1,14 @@
 <?php
-
-require_once('password_authentication.php');
+if (!defined('APP_STARTED')) {
+    die('Forbidden!');
+}
 
 class Wiki
 {
     protected $_renderers = array(
         'md' => 'Markdown',
+        'markdown' => 'Markdown',
+        'mdown' => 'Markdown',
         'htm' => 'HTML', 'html' => 'HTML'
     );
     protected $_ignore = "/^\..*|^CVS$/"; // Match dotfiles and CVS
@@ -39,61 +42,21 @@ class Wiki
 
     protected function _render($page)
     {
-        $fullPath   = LIBRARY . DIRECTORY_SEPARATOR . $page;
-        $path       = realpath($fullPath);
-        $parts      = explode('/', $page);
+        $path = realpath(LIBRARY . DIRECTORY_SEPARATOR . $page);
+        $parts = explode('/', $page);
 
         $not_found = function () use ($page) {
             $page = htmlspecialchars($page, ENT_QUOTES);
             throw new Exception("Page '$page' was not found");
         };
 
-        if(!ENABLE_CREATING && !$this->_pathIsSafe($fullPath)) {
+        if (!$this->_pathIsSafe($path)) {
             $not_found();
-        }            
-
-        if (ENABLE_CREATING)
-        {
-            // if not found, we show Create button to create a new page if you want
-            if (!file_exists($fullPath))
-            {
-                // Pass this to the render view, cleverly disguised as just
-                // another page, so we can make use of the tree, breadcrumb,
-                // etc.
-                $_page              = htmlspecialchars($page, ENT_QUOTES);
-                $page_data          = $this->_default_page_data;
-                $page_data['title'] = 'Page not found: ' . $_page;
-    
-                return $this->_view('render', array(
-                    'parts'     => $parts,
-                    'page'      => $page_data,
-                    'html'      =>
-                          "<h3>Page '$_page' not found</h3>"
-                        . "<br/>"
-                        . "<form action='/create' method='POST'>"
-                        . "<input type='hidden' name='ref' value='" . $_SERVER['REQUEST_URI'] . "'>"
-                        . "<input type='submit' class='btn btn-primary' value='Create this page' />"
-                        . "</form>"
-                    ,
-                    'is_dir'    => false
-                ));            
-            }        
-        } else {
-            if (!is_readable($fullPath)) 
-                $not_found();
         }
-        
 
         // Handle directories by showing a neat listing of its
         // contents
         if (is_dir($path)) {
-
-            // If exists index.md in directory, we render it
-            if (file_exists($path . DIRECTORY_SEPARATOR . 'index.md')) {
-                return $this->_render($page . DIRECTORY_SEPARATOR . 'index.md');
-            }
-
-
             // Get a printable version of the actual folder name:
             $dir_name = htmlspecialchars(end($parts), ENT_QUOTES, 'UTF-8');
 
@@ -120,8 +83,8 @@ class Wiki
         $finfo = finfo_open(FILEINFO_MIME);
         $mime_type = finfo_file($finfo, $path);
 
-        if (strpos($mime_type, 'inode/x-empty') === false && substr($mime_type, 0, 4) != 'text') {
-            // not an ASCII file, send it directly to the browser (except if it's empty)
+        if (substr($mime_type, 0, 4) != 'text') {
+            // not an ASCII file, send it directly to the browser
             $file = fopen($path, 'rb');
 
             header("Content-Type: $mime_type");
@@ -150,7 +113,7 @@ class Wiki
             $html = $renderer($source);
         }
         if ($renderer && $renderer == 'Markdown') {
-            $html = \Michelf\MarkdownExtra::defaultTransform($source);
+            $html = \Wikitten\MarkdownExtra::defaultTransform($source);
         }
 
         $this->_view('render', array(
@@ -160,8 +123,7 @@ class Wiki
             'parts' => $parts,
             'page' => $page_data,
             'is_dir' => false,
-            'use_pastebin' => $this->_usePasteBin(),
-            'deletion_enabled' => ENABLE_DELETION
+            'use_pastebin' => $this->_usePasteBin()
         ));
     }
 
@@ -244,7 +206,6 @@ class Wiki
 
                 throw new RuntimeException($message);
             }
-
         }
 
         return array($source, $meta_data);
@@ -304,6 +265,35 @@ class Wiki
         return $return['directories'] + $return['files'];
     }
 
+    public function dispatch()
+    {
+        if (!function_exists("finfo_open")) {
+            die("<p>Please enable the PHP Extension <code style='background-color: #eee; border: 1px solid #ccc; padding: 3px; border-radius: 3px; line-height: 1;'>FileInfo.dll</code> by uncommenting or adding the following line:</p><pre style='background-color: #eee; border: 1px solid #ccc; padding: 5px; border-radius: 3px;'><code><span style='color: #999;'>;</span>extension=php_fileinfo.dll <span style='color: #999; margin-left: 25px;'># You can just uncomment by removing the semicolon (;) in the front.</span></code></pre>");
+        }
+        $action = $this->_getAction();
+        $actionMethod = "{$action}Action";
+
+        if ($action === null || !method_exists($this, $actionMethod)) {
+            $this->_404();
+        }
+
+        $this->$actionMethod();
+    }
+
+    protected function _getAction()
+    {
+        if (isset($_REQUEST['a'])) {
+            $action = $_REQUEST['a'];
+
+            if (in_array("{$action}Action", get_class_methods(get_class($this)))) {
+                $this->_action = $action;
+            }
+        } else {
+            $this->_action = 'index';
+        }
+        return $this->_action;
+    }
+
     protected function _json($data = array())
     {
         header("Content-type: text/x-json");
@@ -361,14 +351,13 @@ class Wiki
 
         try {
             $this->_render($page);
-
         } catch (Exception $e) {
             $this->_404($e->getMessage());
         }
     }
 
     /**
-     * /edit
+     * /?a=edit
      * If ENABLE_EDITING is true, handles file editing through
      * the web interface.
      */
@@ -406,82 +395,6 @@ class Wiki
         header("Location: $redirect_url");
 
         exit();
-    }
-    
-    public function createAction()
-    {
-        $page       = str_replace("###" . APP_DIR . "/", "", "###" . urldecode($_POST['ref']));
-        $filepath   = LIBRARY. DIRECTORY_SEPARATOR . $_POST['ref'];
-
-        // if feature not enabled, go to 404
-        if (!ENABLE_CREATING || file_exists($filepath))
-          $this->_404();
-
-
-        // Create subdirectory recursively, if neccessary
-        $dir = dirname($filepath);
-
-        if(!file_exists($dir))
-          mkdir($dir, 0755, true);
-        
-        // Save default content, and redirect back to the new page
-        $content    = "# " . htmlspecialchars($page, ENT_QUOTES, 'UTF-8');
-        file_put_contents($filepath, $content);
-
-        if (file_exists($filepath))
-        {
-            // Redirect to new page
-            $redirect_url = BASE_URL . "/$page";
-            header("HTTP/1.0 302 Found", true);
-            header("Location: $redirect_url");
-    
-            exit();
-        } 
-        else
-            $this->_404();
-    }
-
-    public function deleteAction()
-    {
-      if (isset($_POST['ref'])) {
-          $file = base64_decode($_POST['ref']);
-          $path = realpath(LIBRARY . DIRECTORY_SEPARATOR . $file);
-
-          if (!ENABLE_DELETION || !$this->_pathIsSafe($path)) {
-              $this->_404();
-          } else {
-              if (unlink($path)) {
-                  $response['status'] = 'ok';
-                  $response['url'] = BASE_URL . "/" . dirname($file);
-              } else {
-                  $response['status'] = 'fail';
-                  $response['error'] = '';
-              }
-
-              header('Content-Type: application/json');
-              echo json_encode($response);
-              exit();
-          }
-      }
-    }
-
-    public function authenticationFormAction() {
-      return $this->_view('auth', array(
-        'hide_file_tree' => true,
-        'password_set' => PasswordAuthentication::hasPasswordBeenSet()
-      ));
-    }
-
-    public function authenticateAction() {
-      $password = $_POST['password'];
-
-      if(PasswordAuthentication::authenticate($password)) {
-        // Redirect to the root page so that we avoid the authenticate's POST request being reloaded
-        header('Location: ' . BASE_URL);
-        exit();
-      }
-      else
-        return $this->authenticationFormAction();
     }
 
     /**
@@ -538,7 +451,7 @@ class Wiki
      * Singleton
      * @return Wiki
      */
-    static public function instance()
+    public static function instance()
     {
         static $instance;
         if (!($instance instanceof self)) {
@@ -546,5 +459,4 @@ class Wiki
         }
         return $instance;
     }
-
 }

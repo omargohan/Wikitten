@@ -1,6 +1,6 @@
-FROM php:5.6-cli
+FROM php:7.2-cli
 RUN mkdir -p /var/www
 WORKDIR /var/www
 COPY . /var/www/
-EXPOSE 9000
-CMD [ "php", "-S", "0.0.0.0:9000", "routing.php" ]
+EXPOSE 8080
+CMD [ "php", "-S", "0.0.0.0:8080", "routing.php" ]
